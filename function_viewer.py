@@ -82,14 +82,14 @@ class FunctionViewer(QtGui.QWidget):
 class FunctionFig(FigureCanvasQTAgg):
 
     def __init__(self, ui):
-        fig_width, fig_height = 6, 8
+        fig_width, fig_height = 10, 10
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(FunctionFig, self).__init__(fig)
         self.initFig()
         self.ui = ui
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+        self.ax = self.figure.add_axes([0.1, 0.1, 0.8, 0.8])
 
     def plot_func(self):
         self.ax.cla()
@@ -98,26 +98,37 @@ class FunctionFig(FigureCanvasQTAgg):
         domain_input = self.ui.domain_edit.text()
         current_color = self.ui.color_edit.text()
 
+        self.ax.set_title(current_func, y= 1.02)
+        self.ax.set_xlabel(' X ')
+        self.ax.set_ylabel(' Y ')
+
+
         str_limits = re.findall(r"[+-]?\d+(?:\.\d+)?", domain_input)
         float_limits = [float(i) for i in str_limits]
         #print(float_limits)
 
 
         values = np.arange(float_limits[0], float_limits[1] + current_step, current_step)
-        #print(values)
         current_func = current_func.replace('(', '/').replace(')', '/')
         current_func = current_func.split('/')
 
         for i in range(len(current_func)):
             if len(current_func[i]) == 1:
                 ind = i
-                if i > 1:
-                    plot_input = getattr(np, current_func[-len(current_func)])(getattr(np, current_func[-len(current_func) + 1])(values))
-                elif i == 1:
-                    plot_input = getattr(np, current_func[0])(values)
+                print(ind)
+                print(current_func)
+                for n in range(i):
+                    ind -= 1
+                    if n == 0:
+                        plot_input = getattr(np, current_func[ind])(values)
+                        print(current_func[ind])
+                    else:
+                        plot_input = getattr(np, current_func[ind])(plot_input)
+                        print(current_func[ind])
 
 
-        self.ax.plot(plot_input, color= current_color)
+        self.ax.plot(values, plot_input, color= current_color)
+        self.ax.set_xlim(values[0], values[-1])
         self.draw()
 
 
