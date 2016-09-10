@@ -101,13 +101,15 @@ class FunctionFig(FigureCanvasQTAgg):
 
         str_limits = re.findall(r"[+-]?\d+(?:\.\d+)?", domain_input)
         float_limits = [float(i) for i in str_limits]
-        print(float_limits)
+        #print(float_limits)
+
 
         values = np.arange(float_limits[0], float_limits[1] + current_step, current_step)
         #print(values)
+        plot_input = getattr(np, current_func[:-3])(values)
 
-        if current_func == 'exp(x)':
-            plot_input = np.exp(values)
+        #if current_func == 'exp(x)':
+        #    plot_input = np.exp(values)
             #print(plot_input)
 
         sine_funcs = [ 'sin(x)', 'cos(x)']
