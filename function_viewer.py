@@ -106,23 +106,20 @@ class FunctionFig(FigureCanvasQTAgg):
 
         values = np.arange(float_limits[0], float_limits[1] + current_step, current_step)
         #print(values)
-        plot_input = getattr(np, current_func[:-3])(values)
+        current_func = current_func.replace('(', '/').replace(')', '/')
+        current_func = current_func.split('/')
 
-        #if current_func == 'exp(x)':
-        #    plot_input = np.exp(values)
-            #print(plot_input)
-
-        sine_funcs = [ 'sin(x)', 'cos(x)']
-
-        if current_func == 'sin(x)':
-            values = np.pi * values
-            plot_input = np.sin(values)
+        for i in range(len(current_func)):
+            if len(current_func[i]) == 1:
+                ind = i
+                if i > 1:
+                    plot_input = getattr(np, current_func[-len(current_func)])(getattr(np, current_func[-len(current_func) + 1])(values))
+                elif i == 1:
+                    plot_input = getattr(np, current_func[-len(current_func)])(values)
 
 
         self.ax.plot(plot_input, color= current_color)
         self.draw()
-
-
 
 
 #--- Class For Alignment ---#
