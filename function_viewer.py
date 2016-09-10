@@ -88,7 +88,6 @@ class FunctionFig(FigureCanvasQTAgg):
         self.initFig()
         self.ui = ui
 
-
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
 
@@ -115,7 +114,7 @@ class FunctionFig(FigureCanvasQTAgg):
                 if i > 1:
                     plot_input = getattr(np, current_func[-len(current_func)])(getattr(np, current_func[-len(current_func) + 1])(values))
                 elif i == 1:
-                    plot_input = getattr(np, current_func[-len(current_func)])(values)
+                    plot_input = getattr(np, current_func[0])(values)
 
 
         self.ax.plot(plot_input, color= current_color)
