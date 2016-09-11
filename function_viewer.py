@@ -46,16 +46,21 @@ class FunctionViewer(QtGui.QWidget):
 
         #------- Widgets -------#
         #--- Labels ---#
-        func_label = MyQLabel('Enter Function:', ha= 'center')
-        step_label = MyQLabel('Enter Steps:', ha= 'center')
-        domain_label = MyQLabel('Domain:', ha= 'center')
-        color_label = MyQLabel('Color:', ha= 'center')
+        func_label       = MyQLabel('Enter Function:', ha= 'center')
+        step_label       = MyQLabel('Enter Steps:', ha= 'center')
+        domain_label     = MyQLabel('Domain:', ha= 'center')
+        color_label      = MyQLabel('Color:', ha= 'center')
+        markersize_label = MyQLabel('Marker size')
 
         #--- Edits ---#
-        self.func_edit = QtGui.QLineEdit('exp(x)')
-        self.step_edit = QtGui.QLineEdit('0.2')
+        self.func_edit   = QtGui.QLineEdit('exp(x)')
+        self.step_edit   = QtGui.QLineEdit('0.2')
         self.domain_edit = QtGui.QLineEdit('-1, 1')
-        self.color_edit = QtGui.QLineEdit('blue')
+        self.color_edit  = QtGui.QLineEdit('blue')
+        self.markersize_edit = QtGui.QLineEdit('5')
+
+        #- Edits' Disposition -#
+        self.markersize_edit.setFixedWidth(80)
 
         #--- Buttons ---#
         plot_btn = QtGui.QPushButton('Plot')
@@ -63,9 +68,32 @@ class FunctionViewer(QtGui.QWidget):
         #- Buttons Actions -#
         plot_btn.clicked.connect(self.functionFig.plot_func)
 
+        #--- CheckBoxes ---#
+        self.marker_check = QtGui.QCheckBox('Mark every values')
+
+        #--- CheckBoxes' Actions ---#
+        self.marker_check.stateChanged.connect(self.functionFig.plot_func)
+
+        #--- ComboBoxes ---#
+        self.marker_combo = QtGui.QComboBox()
+
+        #--- ComboBoxes' Items ---#
+        marker_list = ['o', '.', '*']
+        self.marker_combo.addItems(marker_list)
+
+
+        #------- Markers' settings GroupBox -------#
+        marker_group = QtGui.QGroupBox('Markers')
+        marker_grid = QtGui.QGridLayout()
+        marker_grid.addWidget(self.marker_combo, 0, 0, 1, 2)
+        marker_grid.addWidget(markersize_label, 1, 0)
+        marker_grid.addWidget(self.markersize_edit, 1, 1)
+        marker_grid.addWidget(self.marker_check, 2, 0, 1, 2)
+        marker_group.setLayout(marker_grid)
+
         #------- Master Grid -------#
         master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(self.function_manager, 0, 0, 11, 1)
+        master_grid.addWidget(self.function_manager, 0, 0, 12, 1)
         master_grid.addWidget(func_label, 1, 1)
         master_grid.addWidget(self.func_edit, 2, 1)
         master_grid.addWidget(step_label, 3, 1)
@@ -74,13 +102,16 @@ class FunctionViewer(QtGui.QWidget):
         master_grid.addWidget(self.domain_edit, 6, 1)
         master_grid.addWidget(color_label, 7, 1)
         master_grid.addWidget(self.color_edit, 8, 1)
-        master_grid.addWidget(plot_btn, 9, 1)
-        master_grid.setRowStretch(10, 100)
+        master_grid.addWidget(marker_group, 9, 1)
+        master_grid.addWidget(plot_btn, 10, 1)
+        master_grid.setRowStretch(11, 100)
         master_grid.setColumnStretch(0, 100)
         self.setLayout(master_grid)
 
 class FunctionFig(FigureCanvasQTAgg):
-
+    '''
+    This is the function which holds the function plot
+    '''
     def __init__(self, ui):
         fig_width, fig_height = 10, 10
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
@@ -93,27 +124,46 @@ class FunctionFig(FigureCanvasQTAgg):
 
     def plot_func(self):
         self.ax.cla()
-        current_func = self.ui.func_edit.text()
-        current_step = float(self.ui.step_edit.text())
-        domain_input = self.ui.domain_edit.text()
+
+        # Getting the information from the GUI
+        current_func  = self.ui.func_edit.text()
+        current_step  = float(self.ui.step_edit.text())
+        domain_input  = self.ui.domain_edit.text()
         current_color = self.ui.color_edit.text()
+        marker        = self.ui.marker_combo.currentText()
+        marker_size   = float(self.ui.markersize_edit.text())
+        marker_state  = self.ui.marker_check.isChecked()
+
 
         self.ax.set_title(current_func, y= 1.02)
         self.ax.set_xlabel(' X ')
         self.ax.set_ylabel(' Y ')
 
+        #TODO: domain expressed with pi
+        if 'pi' in domain_input:
+            str_limits = domain_input.split(',')
+            for i in range(len(domain_input)):
+                if 'pi' in str_limits[i]:
+                    str_limits[i] = str_limits[i] - 'pi'
 
-        str_limits = re.findall(r"[+-]?\d+(?:\.\d+)?", domain_input)
-        float_limits = [float(i) for i in str_limits]
-        #print(float_limits)
+        # Basic float or int domain
+        else:
+            str_limits = domain_input.split(',')
+            float_limits = [float(i) for i in str_limits]
+            #print(float_limits)
 
-
+        # Making an array from the first domain limit to the other one
+        # with de step defined in the GUI
         values = np.arange(float_limits[0], float_limits[1] + current_step, current_step)
+
+
         current_func = current_func.replace('(', '/').replace(')', '/')
         current_func = current_func.split('/')
 
+        possible_input_dimensions = ['x', 'y', 'z', 'X', 'Y', 'Z']
+
         for i in range(len(current_func)):
-            if len(current_func[i]) == 1:
+            if len(current_func[i]) == 1 and current_func[i] in possible_input_dimensions:
                 ind = i
                 print(ind)
                 print(current_func)
@@ -126,8 +176,11 @@ class FunctionFig(FigureCanvasQTAgg):
                         plot_input = getattr(np, current_func[ind])(plot_input)
                         print(current_func[ind])
 
+        if marker_state:
+            self.ax.plot(values, plot_input, color= current_color, marker= marker, markersize= marker_size)
+        else:
+            self.ax.plot(values, plot_input, color= current_color)
 
-        self.ax.plot(values, plot_input, color= current_color)
         self.ax.set_xlim(values[0], values[-1])
         self.draw()
 
