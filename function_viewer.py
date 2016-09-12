@@ -53,9 +53,9 @@ class FunctionViewer(QtGui.QWidget):
         markersize_label = MyQLabel('Marker size')
 
         #--- Edits ---#
-        self.func_edit   = QtGui.QLineEdit('exp(x)')
+        self.func_edit   = QtGui.QLineEdit('sin(x)')
         self.step_edit   = QtGui.QLineEdit('0.2')
-        self.domain_edit = QtGui.QLineEdit('-1, 1')
+        self.domain_edit = QtGui.QLineEdit('-3pi/2, pi/2')
         self.color_edit  = QtGui.QLineEdit('blue')
         self.markersize_edit = QtGui.QLineEdit('5')
 
@@ -140,25 +140,49 @@ class FunctionFig(FigureCanvasQTAgg):
         self.ax.set_ylabel(' Y ')
 
         #TODO: domain expressed with pi
-        if 'pi' in domain_input:
-            str_limits = domain_input.split(',')
-            for i in range(len(domain_input)):
-                if 'pi' in str_limits[i]:
-                    str_limits[i] = str_limits[i] - 'pi'
+
+        str_limits = domain_input.split(',')
+        float_limits = [0, 0]
+
+        for i in range(len(str_limits)):
+            print('pi' in str_limits[i])
+            if 'pi' in str_limits[i]:
+                # Deleting Pi from the limit
+                str_limits[i] = str_limits[i].replace('pi', '')
+
+                if str_limits[i] == '-':
+                    str_limits[i] = '-1'
+                elif str_limits[i] == ' ':
+                    str_limits[i] = '1'
+                elif '/' in str_limits[i]:
+                    tmp = str_limits[i].split('/')
+
+                    for n in range(len(tmp)):
+                        if tmp[n] == ' ':
+                            tmp[n] = '1'
+                        if tmp[n] == '-':
+                            tmp[n] = '-1'
+
+                    tmp = [float(i) for i in tmp]
+                    str_limits[i] = str(tmp[0]/tmp[1])
+
+
+                float_limits[i] = float(str_limits[i])*np.pi
 
         # Basic float or int domain
-        else:
-            str_limits = domain_input.split(',')
-            float_limits = [float(i) for i in str_limits]
-            #print(float_limits)
+            else:
+                float_limits[i] = float(str_limits[i])
+                #print(float_limits)
 
         # Making an array from the first domain limit to the other one
         # with de step defined in the GUI
         values = np.arange(float_limits[0], float_limits[1] + current_step, current_step)
 
 
-        current_func = current_func.replace('(', '/').replace(')', '/')
-        current_func = current_func.split('/')
+        current_func = current_func.replace('(', ')')
+        current_func = current_func.split(')')
+
+        func = []
 
         possible_input_dimensions = ['x', 'y', 'z', 'X', 'Y', 'Z']
 
