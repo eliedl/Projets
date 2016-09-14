@@ -145,7 +145,6 @@ class FunctionFig(FigureCanvasQTAgg):
         float_limits = [0, 0]
 
         for i in range(len(str_limits)):
-            print('pi' in str_limits[i])
             if 'pi' in str_limits[i]:
                 # Deleting Pi from the limit
                 str_limits[i] = str_limits[i].replace('pi', '')
@@ -160,7 +159,7 @@ class FunctionFig(FigureCanvasQTAgg):
                     for n in range(len(tmp)):
                         if tmp[n] == ' ':
                             tmp[n] = '1'
-                        if tmp[n] == '-':
+                        if tmp[n] == '-' or ' -':
                             tmp[n] = '-1'
 
                     tmp = [float(i) for i in tmp]
@@ -172,7 +171,6 @@ class FunctionFig(FigureCanvasQTAgg):
         # Basic float or int domain
             else:
                 float_limits[i] = float(str_limits[i])
-                #print(float_limits)
 
         # Making an array from the first domain limit to the other one
         # with de step defined in the GUI
@@ -195,10 +193,9 @@ class FunctionFig(FigureCanvasQTAgg):
                     ind -= 1
                     if n == 0:
                         plot_input = getattr(np, current_func[ind])(values)
-                        print(current_func[ind])
                     else:
                         plot_input = getattr(np, current_func[ind])(plot_input)
-                        print(current_func[ind])
+
 
         if marker_state:
             self.ax.plot(values, plot_input, color= current_color, marker= marker, markersize= marker_size)
